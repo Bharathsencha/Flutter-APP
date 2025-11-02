@@ -1,0 +1,152 @@
+╔══════════════════════════════════════════════════════════════╗
+║          VIDEO DOWNLOADER - QUICK REFERENCE CARD              ║
+╚══════════════════════════════════════════════════════════════╝
+
+📦 INSTALLATION
+───────────────────────────────────────────────────────────────
+1. Install FFmpeg:
+   Windows: choco install ffmpeg
+   Mac:     brew install ffmpeg
+   Linux:   sudo apt install ffmpeg
+
+2. Start Backend:
+   cd backend
+   .\start_server.bat (Windows)
+   ./start_server.sh  (Linux/Mac)
+
+3. Run Flutter App:
+   flutter pub get
+   flutter run
+
+📡 BACKEND ENDPOINTS
+───────────────────────────────────────────────────────────────
+GET  /api/health          → Check server status
+POST /api/info            → Get video information
+POST /api/formats         → Get available formats
+POST /api/download        → Download video/audio
+GET  /api/file/<filename> → Get downloaded file
+
+💻 BACKEND COMMANDS
+───────────────────────────────────────────────────────────────
+python app.py             → Start server manually
+python test_api.py        → Test all endpoints
+pip install -r requirements.txt → Install dependencies
+
+📱 FLUTTER COMMANDS
+───────────────────────────────────────────────────────────────
+flutter pub get           → Get dependencies
+flutter run              → Run on connected device
+flutter build apk        → Build Android APK
+flutter clean            → Clean build files
+flutter analyze          → Check for errors
+
+🔧 CONFIGURATION
+───────────────────────────────────────────────────────────────
+Emulator:  http://localhost:5000
+Physical:  http://YOUR_IP:5000
+           (Update lib/config/api_config.dart)
+
+Find IP:   ipconfig (Windows) / ifconfig (Mac/Linux)
+
+🗂️ PROJECT STRUCTURE
+───────────────────────────────────────────────────────────────
+backend/
+  ├── app.py              → Flask server
+  ├── requirements.txt    → Python packages
+  ├── start_server.bat    → Windows startup
+  ├── start_server.sh     → Linux/Mac startup
+  └── downloads/          → Downloaded files
+
+lib/
+  ├── config/
+  │   └── api_config.dart → API settings
+  ├── models/
+  │   └── video_models.dart → Data models
+  ├── services/
+  │   └── api_service.dart → API calls
+  └── screens/
+      ├── home_screen.dart      → Download UI
+      ├── downloads_screen.dart → File manager
+      └── settings_screen.dart  → Settings
+
+📚 DOCUMENTATION FILES
+───────────────────────────────────────────────────────────────
+QUICKSTART.md            → Quick start guide
+SETUP_GUIDE.md           → Detailed setup
+VERIFICATION_CHECKLIST.md → Testing checklist
+PROJECT_COMPLETE.md      → Complete overview
+backend/README.md        → Backend docs
+
+🧪 TESTING
+───────────────────────────────────────────────────────────────
+Backend:  python test_api.py
+Flutter:  flutter test
+Browser:  http://localhost:5000/api/health
+
+🔥 COMMON ISSUES
+───────────────────────────────────────────────────────────────
+Server won't start:
+  → Check Python installed: python --version
+  → Check FFmpeg: ffmpeg -version
+  → Check port 5000 free
+
+App can't connect:
+  → Backend must be running
+  → Check IP address in api_config.dart
+  → Same WiFi network
+  → Disable firewall (test)
+
+Download fails:
+  → Check FFmpeg installed
+  → Update yt-dlp: pip install -U yt-dlp
+  → Check backend logs in terminal
+
+Permission error:
+  → Enable storage permission
+  → Android 11+: "All files access"
+
+🎯 SUPPORTED PLATFORMS
+───────────────────────────────────────────────────────────────
+✅ YouTube      ✅ TikTok       ✅ Instagram
+✅ Twitter      ✅ Facebook     ✅ Vimeo
+✅ Reddit       ✅ Twitch       ✅ Dailymotion
+✅ 1000+ more platforms supported by yt-dlp!
+
+🔑 KEY FEATURES
+───────────────────────────────────────────────────────────────
+✅ Video download (multiple qualities)
+✅ Audio extraction (MP3)
+✅ Real-time progress tracking
+✅ Video info preview
+✅ Download history
+✅ File management
+✅ Cross-platform support
+
+🚀 QUICK START (3 STEPS)
+───────────────────────────────────────────────────────────────
+1. cd backend && .\start_server.bat
+2. flutter pub get
+3. flutter run
+
+📝 TEST VIDEO URL
+───────────────────────────────────────────────────────────────
+https://www.youtube.com/watch?v=dQw4w9WgXcQ
+
+💡 PRO TIPS
+───────────────────────────────────────────────────────────────
+• Keep backend running while using app
+• Use audio format for faster downloads
+• Check backend terminal for error logs
+• Test with YouTube first before other platforms
+• Clear app cache if issues persist
+
+🆘 GET HELP
+───────────────────────────────────────────────────────────────
+1. Check TROUBLESHOOTING section in docs
+2. Look at backend terminal logs
+3. Test API with: python test_api.py
+4. Verify health: http://localhost:5000/api/health
+
+╔══════════════════════════════════════════════════════════════╗
+║  🎉 You're ready to download videos from 1000+ platforms!   ║
+╚══════════════════════════════════════════════════════════════╝
