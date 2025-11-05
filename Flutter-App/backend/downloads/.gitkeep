@@ -1,0 +1,2 @@
+# This file ensures the downloads directory exists in git
+# but doesn't track downloaded files
