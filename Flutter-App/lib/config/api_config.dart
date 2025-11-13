@@ -5,7 +5,8 @@ class ApiConfig {
   // For Android Emulator / physical device - use your computer's LAN IP.
   // This project detected the backend running on 192.168.1.7:5000 when started locally,
   // so use that IP while testing on the physical device on the same Wi-Fi network.
-  static const String baseUrl = 'http://192.168.1.7:5000';
+  static const String baseUrl = 'http://192.168.1.7:5000'; // this is anush backend running IP.. so anyone who runs it.. please paste their IP ..
+  // anush hi bro..
   
   // For Android Emulator (alternative, less stable):
   // static const String baseUrl = 'http://10.0.2.2:5000';

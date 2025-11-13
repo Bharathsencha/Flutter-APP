@@ -1,5 +1,5 @@
 Flask==3.0.0
 flask-cors==4.0.0
-yt-dlp==2024.10.22
+yt-dlp>=2024.11.4
 Werkzeug==3.0.1
 requests>=2.32.2
