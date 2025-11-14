@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:provider/provider.dart';
 import '../services/api_service.dart';
+import '../services/auth_provider.dart';
+import '../services/database_service.dart';
 import '../models/video_models.dart';
+import '../models/download_model.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -15,6 +19,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final String _selectedQuality = 'best';
   final TextEditingController _urlController = TextEditingController();
   final ApiService _apiService = ApiService();
+  final DatabaseService _dbService = DatabaseService();
   
   bool _isLoading = false;
   bool _isDownloading = false;
@@ -446,6 +451,23 @@ class _HomeScreenState extends State<HomeScreen> {
       });
 
       if (filePath != null && mounted) {
+        // Save download record to database
+        final user = context.read<AuthProvider>().currentUser;
+        if (user != null) {
+          final filename = filePath.split('/').last;
+          final downloadType = _selectedFormat == 'video' ? 'video' : 'audio';
+          
+          final downloadRecord = Download(
+            userId: user.id!,
+            filename: filename,
+            filepath: filePath,
+            type: downloadType,
+            downloadedAt: DateTime.now(),
+          );
+          
+          await _dbService.addDownload(downloadRecord);
+        }
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Download complete!\nSaved to: $filePath'),

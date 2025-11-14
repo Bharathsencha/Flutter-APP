@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'dart:io';
-import '../services/api_service.dart';
+import '../services/auth_provider.dart';
+import '../services/database_service.dart';
+import '../models/download_model.dart';
 
 class DownloadsScreen extends StatefulWidget {
   const DownloadsScreen({super.key});
@@ -11,232 +14,63 @@ class DownloadsScreen extends StatefulWidget {
 
 class _DownloadsScreenState extends State<DownloadsScreen> {
   String _selectedCategory = 'All';
-  final ApiService _apiService = ApiService();
-  List<FileSystemEntity> _downloadedFiles = [];
+  final DatabaseService _dbService = DatabaseService();
+  List<Download> _userDownloads = [];
   bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    _loadDownloadedFiles();
+    _loadUserDownloads();
   }
 
-  Future<void> _loadDownloadedFiles() async {
+  Future<void> _loadUserDownloads() async {
     setState(() {
       _isLoading = true;
     });
 
     try {
-      final files = await _apiService.getDownloadedFiles();
-      setState(() {
-        _downloadedFiles = files;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
-    }
-  }
+      final authProvider = context.read<AuthProvider>();
+      final user = authProvider.currentUser;
 
-  List<FileSystemEntity> _getFilteredFiles() {
-    if (_selectedCategory == 'All') {
-      return _downloadedFiles;
-    } else if (_selectedCategory == 'Videos') {
-      return _downloadedFiles.where((file) {
-        final path = file.path.toLowerCase();
-        return path.endsWith('.mp4') || path.endsWith('.mkv') || 
-               path.endsWith('.avi') || path.endsWith('.webm');
-      }).toList();
-    } else {
-      return _downloadedFiles.where((file) {
-        final path = file.path.toLowerCase();
-        return path.endsWith('.mp3') || path.endsWith('.m4a') || 
-               path.endsWith('.wav') || path.endsWith('.aac');
-      }).toList();
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Video Downloader'),
-        backgroundColor: Colors.blue,
-        foregroundColor: Colors.white,
-      ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header Section
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(16),
-            color: Colors.grey.shade50,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Download videos and audio from any platform',
-                  style: TextStyle(fontSize: 14, color: Colors.grey),
-                ),
-                const SizedBox(height: 16),
-                // Category Tabs
-                Row(
-                  children: [
-                    _buildCategoryTab('All', 'All'),
-                    const SizedBox(width: 16),
-                    _buildCategoryTab('Videos', 'Videos'),
-                    const SizedBox(width: 16),
-                    _buildCategoryTab('Audio', 'Audio'),
-                  ],
-                ),
-              ],
-            ),
-          ),
-
-          // Download History Section
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Download History',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.refresh),
-                  onPressed: _loadDownloadedFiles,
-                  tooltip: 'Refresh',
-                ),
-              ],
-            ),
-          ),
-
-          // File List or Empty State
-          Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : _getFilteredFiles().isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.download_rounded,
-                              size: 64,
-                              color: Colors.grey.shade400,
-                            ),
-                            const SizedBox(height: 16),
-                            const Text(
-                              'No Downloads Yet',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.grey,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            const Text(
-                              'Your download history will appear here',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
-                        ),
-                      )
-                    : ListView.builder(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        itemCount: _getFilteredFiles().length,
-                        itemBuilder: (context, index) {
-                          final file = _getFilteredFiles()[index];
-                          final filename = file.path.split('/').last;
-                          final isVideo = filename.toLowerCase().endsWith('.mp4') ||
-                              filename.toLowerCase().endsWith('.mkv') ||
-                              filename.toLowerCase().endsWith('.avi') ||
-                              filename.toLowerCase().endsWith('.webm');
-
-                          return Card(
-                            margin: const EdgeInsets.only(bottom: 12),
-                            child: ListTile(
-                              leading: CircleAvatar(
-                                backgroundColor: isVideo 
-                                    ? Colors.blue.shade100 
-                                    : Colors.orange.shade100,
-                                child: Icon(
-                                  isVideo ? Icons.video_library : Icons.music_note,
-                                  color: isVideo ? Colors.blue : Colors.orange,
-                                ),
-                              ),
-                              title: Text(
-                                filename,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(fontSize: 14),
-                              ),
-                              subtitle: Text(
-                                _getFileSize(file),
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey.shade600,
-                                ),
-                              ),
-                              trailing: PopupMenuButton<String>(
-                                onSelected: (value) {
-                                  if (value == 'delete') {
-                                    _deleteFile(file);
-                                  }
-                                },
-                                itemBuilder: (context) => [
-                                  const PopupMenuItem(
-                                    value: 'delete',
-                                    child: Row(
-                                      children: [
-                                        Icon(Icons.delete, color: Colors.red, size: 20),
-                                        SizedBox(width: 8),
-                                        Text('Delete'),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _getFileSize(FileSystemEntity file) {
-    try {
-      final fileSize = File(file.path).lengthSync();
-      if (fileSize < 1024) {
-        return '$fileSize B';
-      } else if (fileSize < 1024 * 1024) {
-        return '${(fileSize / 1024).toStringAsFixed(1)} KB';
-      } else if (fileSize < 1024 * 1024 * 1024) {
-        return '${(fileSize / (1024 * 1024)).toStringAsFixed(1)} MB';
-      } else {
-        return '${(fileSize / (1024 * 1024 * 1024)).toStringAsFixed(1)} GB';
+      if (user == null) {
+        setState(() {
+          _userDownloads = [];
+          _isLoading = false;
+        });
+        return;
       }
+
+      // Get downloads from database for current user
+      final downloads = await _dbService.getUserDownloads(user.id!);
+      setState(() {
+        _userDownloads = downloads;
+        _isLoading = false;
+      });
     } catch (e) {
-      return 'Unknown';
+      print('Error loading downloads: $e');
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
-  Future<void> _deleteFile(FileSystemEntity file) async {
+  List<Download> _getFilteredDownloads() {
+    if (_selectedCategory == 'All') {
+      return _userDownloads;
+    } else if (_selectedCategory == 'Videos') {
+      return _userDownloads.where((dl) => dl.type == 'video').toList();
+    } else {
+      return _userDownloads.where((dl) => dl.type == 'audio').toList();
+    }
+  }
+
+  Future<void> _deleteDownloadRecord(Download download) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete File'),
-        content: Text('Are you sure you want to delete ${file.path.split('/').last}?'),
+        title: const Text('Delete Download'),
+        content: Text('Remove "${download.filename}" from history?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -256,12 +90,19 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
 
     if (confirmed == true) {
       try {
-        await file.delete();
-        _loadDownloadedFiles();
+        // Delete the file from device storage if it exists
+        if (await File(download.filepath).exists()) {
+          await File(download.filepath).delete();
+        }
+
+        // Delete from database
+        await _dbService.deleteDownload(download.id!);
+
+        _loadUserDownloads();
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('File deleted successfully'),
+              content: Text('Download removed'),
               backgroundColor: Colors.green,
             ),
           );
@@ -270,13 +111,194 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Error deleting file: $e'),
+              content: Text('Error deleting: $e'),
               backgroundColor: Colors.red,
             ),
           );
         }
       }
     }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Video Downloader'),
+        backgroundColor: Colors.blue,
+        foregroundColor: Colors.white,
+      ),
+      body: Consumer<AuthProvider>(
+        builder: (context, authProvider, _) {
+          if (authProvider.currentUser == null) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.lock, size: 64, color: Colors.grey),
+                  const SizedBox(height: 16),
+                  const Text('Please login to view downloads'),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pushNamed('/login');
+                    },
+                    child: const Text('Go to Login'),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header Section
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                color: Colors.grey.shade50,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'My Downloads - ${authProvider.currentUser!.name}',
+                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      'Your personal download history',
+                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
+                    const SizedBox(height: 16),
+                    // Category Tabs
+                    Row(
+                      children: [
+                        _buildCategoryTab('All', 'All'),
+                        const SizedBox(width: 16),
+                        _buildCategoryTab('Videos', 'Videos'),
+                        const SizedBox(width: 16),
+                        _buildCategoryTab('Audio', 'Audio'),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+              // Download History Section
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Download History',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.refresh),
+                      onPressed: _loadUserDownloads,
+                      tooltip: 'Refresh',
+                    ),
+                  ],
+                ),
+              ),
+
+              // File List or Empty State
+              Expanded(
+                child: _isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : _getFilteredDownloads().isEmpty
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.download_rounded,
+                                  size: 64,
+                                  color: Colors.grey.shade400,
+                                ),
+                                const SizedBox(height: 16),
+                                const Text(
+                                  'No Downloads Yet',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                const Text(
+                                  'Your download history will appear here',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.grey,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ],
+                            ),
+                          )
+                        : ListView.builder(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            itemCount: _getFilteredDownloads().length,
+                            itemBuilder: (context, index) {
+                              final download = _getFilteredDownloads()[index];
+                              final isVideo = download.type == 'video';
+
+                              return Card(
+                                margin: const EdgeInsets.only(bottom: 12),
+                                child: ListTile(
+                                  leading: CircleAvatar(
+                                    backgroundColor:
+                                        isVideo ? Colors.blue.shade100 : Colors.orange.shade100,
+                                    child: Icon(
+                                      isVideo ? Icons.video_library : Icons.music_note,
+                                      color: isVideo ? Colors.blue : Colors.orange,
+                                    ),
+                                  ),
+                                  title: Text(
+                                    download.filename,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(fontSize: 14),
+                                  ),
+                                  subtitle: Text(
+                                    _formatDate(download.downloadedAt),
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey.shade600,
+                                    ),
+                                  ),
+                                  trailing: PopupMenuButton<String>(
+                                    onSelected: (value) {
+                                      if (value == 'delete') {
+                                        _deleteDownloadRecord(download);
+                                      }
+                                    },
+                                    itemBuilder: (context) => [
+                                      const PopupMenuItem(
+                                        value: 'delete',
+                                        child: Row(
+                                          children: [
+                                            Icon(Icons.delete, color: Colors.red, size: 20),
+                                            SizedBox(width: 8),
+                                            Text('Delete'),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
   }
 
   Widget _buildCategoryTab(String text, String category) {
@@ -304,5 +326,20 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
         ),
       ),
     );
+  }
+
+  String _formatDate(DateTime dateTime) {
+    final now = DateTime.now();
+    final difference = now.difference(dateTime);
+
+    if (difference.inDays == 0) {
+      return 'Today at ${dateTime.hour}:${dateTime.minute.toString().padLeft(2, '0')}';
+    } else if (difference.inDays == 1) {
+      return 'Yesterday';
+    } else if (difference.inDays < 7) {
+      return '${difference.inDays} days ago';
+    } else {
+      return '${dateTime.day}/${dateTime.month}/${dateTime.year}';
+    }
   }
 }
