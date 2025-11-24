@@ -15,30 +15,9 @@ A simple Flutter application that allows users to download videos using a backen
 
 ## Screenshots
 
-### Screenshot 1
-
-![Screenshot 1](img1.jpg)
-
-### Screenshot 2
-
-![Screenshot 2](img2.jpg)
-
-### Screenshot 3
-
-![Screenshot 3](img3.jpg)
-
-### Screenshot 4
-
-![Screenshot 4](img4.jpg)
-
-### Screenshot 5
-
-![Screenshot 5](img5.jpg)
-
-### Screenshot 6
-
-![Screenshot 6](img6.jpg)
-
+| ![1](assets/img1.jpg) | ![2](assets/img2.jpg) | ![3](assets/img3.jpg) |
+| --------------------- | --------------------- | --------------------- |
+| ![4](assets/img4.jpg) | ![5](assets/img5.jpg) | ![6](assets/img6.jpg) |
 ---
 
 ## Tech Stack
